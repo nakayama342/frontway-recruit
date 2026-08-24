@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta charset="utf-8" />
+<title>Frontway | AIで、営業の未来をつくる。</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+html{scroll-behavior:smooth}
+body{margin:0;background:#04060f;color:#e8ecf8;font-family:'Noto Sans JP',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:#4f7cff;color:#fff}
+@keyframes fwFadeUp{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fwCharIn{from{opacity:0;transform:translateY(26px);filter:blur(12px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+@keyframes fwLetter{0%{opacity:0;transform:translateY(18px) scale(.8);filter:blur(8px);text-shadow:0 0 0 rgba(79,124,255,0)}60%{opacity:1;transform:translateY(0) scale(1.06);filter:blur(0);text-shadow:0 0 40px rgba(79,124,255,1)}100%{opacity:1;transform:scale(1);text-shadow:0 0 22px rgba(79,124,255,.8)}}
+@keyframes fwMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes fwMarqueeR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+@keyframes fwPulse{0%,100%{box-shadow:0 0 22px rgba(79,124,255,.55),0 0 60px rgba(139,92,246,.28)}50%{box-shadow:0 0 38px rgba(79,124,255,.9),0 0 100px rgba(139,92,246,.5)}}
+@keyframes fwBeam{0%{transform:translateX(-100%)}100%{transform:translateX(220%)}}
+@keyframes fwFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes fwOrbA{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(60px,-50px) scale(1.15)}}
+@keyframes fwOrbB{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-70px,40px) scale(.9)}}
+@keyframes fwGrad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes fwScan{0%{top:-10%}100%{top:110%}}
+input::placeholder,textarea::placeholder{color:#5a6480}
+</style>
+</helmet>
+
+<canvas id="fw-net" width="1600" height="900" style="position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none"></canvas>
+<div id="fw-glow" style="position:fixed;top:0;left:0;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;background:radial-gradient(circle,rgba(79,124,255,.16),rgba(139,92,246,.08) 45%,transparent 70%);pointer-events:none;z-index:1;mix-blend-mode:screen"></div>
+<div id="fw-progress" style="position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,#4f7cff,#8b5cf6,#22d3ee);z-index:60;box-shadow:0 0 12px rgba(79,124,255,.8)"></div>
+
+<div id="fw-loader" style="position:fixed;inset:0;z-index:99;background:#04060f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;transition:transform .7s cubic-bezier(.76,0,.24,1),opacity .7s ease">
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none"><div style="position:absolute;left:0;right:0;height:120px;background:linear-gradient(180deg,transparent,rgba(79,124,255,.07),transparent);animation:fwScan 2.4s linear infinite"></div></div>
+  <div style="display:flex;gap:6px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:52px;color:#fff;letter-spacing:.1em">
+    <span style="animation:fwLetter .7s ease .10s both">F</span><span style="animation:fwLetter .7s ease .20s both">R</span><span style="animation:fwLetter .7s ease .30s both">O</span><span style="animation:fwLetter .7s ease .40s both">N</span><span style="animation:fwLetter .7s ease .50s both">T</span><span style="animation:fwLetter .7s ease .60s both">W</span><span style="animation:fwLetter .7s ease .70s both">A</span><span style="animation:fwLetter .7s ease .80s both">Y</span>
+  </div>
+  <div style="width:280px;display:flex;flex-direction:column;gap:12px;align-items:center">
+    <div style="width:100%;height:2px;background:rgba(124,154,255,.15);border-radius:2px;overflow:hidden"><div id="fw-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#8b5cf6);box-shadow:0 0 14px rgba(79,124,255,.9);transition:width .12s ease"></div></div>
+    <div style="display:flex;justify-content:space-between;width:100%;font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.3em;color:#5a6a99"><span>LOADING FUTURE</span><span id="fw-pct" style="color:#7c9aff">0%</span></div>
+  </div>
+</div>
+
+<div style="position:relative;z-index:2">
+
+<nav style="position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(4,6,15,.72);backdrop-filter:blur(14px);border-bottom:1px solid rgba(120,140,255,.12)">
+  <a href="#top" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;letter-spacing:.14em;color:#fff;text-decoration:none;text-shadow:0 0 18px rgba(79,124,255,.7)">FRONTWAY</a>
+  <div style="display:flex;align-items:center;gap:26px">
+    <a href="#mission" style="color:#aab4d4;text-decoration:none;font-size:13px;font-weight:500" style-hover="color:#ffffff;text-shadow:0 0 14px rgba(124,154,255,.9)">Mission</a>
+    <a href="#about" style="color:#aab4d4;text-decoration:none;font-size:13px;font-weight:500" style-hover="color:#ffffff;text-shadow:0 0 14px rgba(124,154,255,.9)">About</a>
+    <a href="#why" style="color:#aab4d4;text-decoration:none;font-size:13px;font-weight:500" style-hover="color:#ffffff;text-shadow:0 0 14px rgba(124,154,255,.9)">Why Join</a>
+    <a href="#culture" style="color:#aab4d4;text-decoration:none;font-size:13px;font-weight:500" style-hover="color:#ffffff;text-shadow:0 0 14px rgba(124,154,255,.9)">Culture</a>
+    <a href="#work" style="color:#aab4d4;text-decoration:none;font-size:13px;font-weight:500" style-hover="color:#ffffff;text-shadow:0 0 14px rgba(124,154,255,.9)">Work</a>
+    <a href="#message" style="color:#aab4d4;text-decoration:none;font-size:13px;font-weight:500" style-hover="color:#ffffff;text-shadow:0 0 14px rgba(124,154,255,.9)">Message</a>
+    <a href="#recruit" style="display:inline-block;padding:10px 22px;border-radius:999px;background:linear-gradient(90deg,#4f7cff,#8b5cf6);color:#fff;text-decoration:none;font-size:13px;font-weight:700;animation:fwPulse 3s ease-in-out infinite" style-hover="transform:translateY(-2px)">採用情報を見る</a>
+  </div>
+</nav>
+
+<header id="top" data-screen-label="ファーストビュー" style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:140px 32px 80px;position:relative;overflow:hidden">
+  <div style="position:absolute;top:-120px;left:8%;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(79,124,255,.20),transparent 65%);filter:blur(30px);animation:fwOrbA 11s ease-in-out infinite;pointer-events:none"></div>
+  <div style="position:absolute;bottom:-140px;right:6%;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.18),transparent 65%);filter:blur(34px);animation:fwOrbB 13s ease-in-out infinite;pointer-events:none"></div>
+  <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.42em;color:#7c9aff;margin-bottom:28px;animation:fwFadeUp 1s ease 2.5s both">AI × SALES COMPANY</div>
+  <h1 style="margin:0;font-size:clamp(44px,6.4vw,84px);font-weight:900;line-height:1.28;color:#fff;letter-spacing:.02em">
+    <span style="display:inline-block;animation:fwCharIn .8s ease 2.60s both">A</span><span style="display:inline-block;animation:fwCharIn .8s ease 2.66s both">I</span><span style="display:inline-block;animation:fwCharIn .8s ease 2.72s both">で、</span><span style="display:inline-block;animation:fwCharIn .8s ease 2.78s both">営</span><span style="display:inline-block;animation:fwCharIn .8s ease 2.84s both">業</span><span style="display:inline-block;animation:fwCharIn .8s ease 2.90s both">の</span><br />
+    <span style="display:inline-block;animation:fwCharIn .8s ease 2.96s both;background:linear-gradient(90deg,#7c9aff,#a78bfa,#22d3ee,#7c9aff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation-name:fwCharIn;">未</span><span style="display:inline-block;animation:fwCharIn .8s ease 3.02s both;background:linear-gradient(90deg,#a78bfa,#22d3ee,#7c9aff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent">来</span><span style="display:inline-block;animation:fwCharIn .8s ease 3.08s both">を</span><span style="display:inline-block;animation:fwCharIn .8s ease 3.14s both">つ</span><span style="display:inline-block;animation:fwCharIn .8s ease 3.20s both">く</span><span style="display:inline-block;animation:fwCharIn .8s ease 3.26s both">る</span><span style="display:inline-block;animation:fwCharIn .8s ease 3.32s both">。</span>
+  </h1>
+  <p style="max-width:640px;margin:32px 0 0;font-size:17px;line-height:2.1;color:#b7c1de;animation:fwFadeUp 1.1s ease 3.5s both">Frontwayは、営業現場にAIを実装し、企業の成長を加速させるAIカンパニーです。<br />次の時代の営業を、一緒につくる仲間を募集しています。</p>
+  <div style="display:flex;gap:18px;margin-top:44px;flex-wrap:wrap;justify-content:center;animation:fwFadeUp 1.1s ease 3.8s both">
+    <a href="#recruit" style="display:inline-block;padding:17px 40px;border-radius:999px;background:linear-gradient(90deg,#4f7cff,#8b5cf6);color:#fff;text-decoration:none;font-size:15px;font-weight:700;animation:fwPulse 3s ease-in-out infinite;transition:transform .25s ease" style-hover="transform:translateY(-3px) scale(1.02)">採用情報を見る</a>
+    <a href="#contact" style="display:inline-block;padding:17px 40px;border-radius:999px;border:1px solid rgba(140,160,255,.45);color:#dfe6ff;text-decoration:none;font-size:15px;font-weight:600;background:rgba(79,124,255,.06);transition:all .25s ease" style-hover="border-color:#8b5cf6;box-shadow:0 0 26px rgba(139,92,246,.4);transform:translateY(-3px)">まずは話を聞いてみる</a>
+  </div>
+  <div style="position:absolute;bottom:34px;left:50%;transform:translateX(-50%);font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.32em;color:#5a6a99;animation:fwFloat 2.6s ease-in-out infinite">SCROLL ↓</div>
+</header>
+
+<div style="overflow:hidden;padding:8px 0 0;border-top:1px solid rgba(120,140,255,.08)">
+  <div style="display:flex;width:max-content;animation:fwMarquee 28s linear infinite">
+    <div style="display:flex;gap:64px;padding-right:64px;font-family:'Space Grotesk',sans-serif;font-size:56px;font-weight:700;letter-spacing:.08em;color:transparent;-webkit-text-stroke:1px rgba(124,154,255,.35);white-space:nowrap"><span>AI</span><span>SALES</span><span>AUTOMATION</span><span>GROWTH</span><span>DATA</span><span>SPEED</span></div>
+    <div style="display:flex;gap:64px;padding-right:64px;font-family:'Space Grotesk',sans-serif;font-size:56px;font-weight:700;letter-spacing:.08em;color:transparent;-webkit-text-stroke:1px rgba(124,154,255,.35);white-space:nowrap"><span>AI</span><span>SALES</span><span>AUTOMATION</span><span>GROWTH</span><span>DATA</span><span>SPEED</span></div>
+  </div>
+  <div style="display:flex;width:max-content;animation:fwMarqueeR 34s linear infinite;padding:4px 0 10px;opacity:.5">
+    <div style="display:flex;gap:64px;padding-right:64px;font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:600;letter-spacing:.12em;color:rgba(124,154,255,.22);white-space:nowrap"><span>FUTURE</span><span>SCALE</span><span>LLM</span><span>CRM</span><span>WORKFLOW</span><span>STARTUP</span><span>OWNERSHIP</span></div>
+    <div style="display:flex;gap:64px;padding-right:64px;font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:600;letter-spacing:.12em;color:rgba(124,154,255,.22);white-space:nowrap"><span>FUTURE</span><span>SCALE</span><span>LLM</span><span>CRM</span><span>WORKFLOW</span><span>STARTUP</span><span>OWNERSHIP</span></div>
+  </div>
+</div>
+
+<section id="mission" data-screen-label="Mission" style="max-width:1080px;margin:0 auto;padding:150px 32px 120px">
+  <div data-reveal="1" style="opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4em;background:linear-gradient(90deg,#4f7cff,#a78bfa,#22d3ee,#4f7cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;animation:fwGrad 6s ease infinite">MISSION</div>
+    <h2 style="margin:0;font-size:clamp(30px,4vw,48px);font-weight:900;line-height:1.5;color:#fff">営業という巨大な市場を、<br />AIで再設計する。</h2>
+    <p style="max-width:620px;margin:30px 0 0;font-size:16px;line-height:2.2;color:#aab4d4">営業は、まだ人の経験や感覚に頼っている領域が多く残っています。<br />Frontwayは、AI・データ・業務設計の力で、営業活動をもっと速く、もっと正確に、もっと成果が出るものへ変えていきます。</p>
+  </div>
+</section>
+
+<section id="about" data-screen-label="About Frontway" style="max-width:1080px;margin:0 auto;padding:0 32px 150px">
+  <div data-reveal="1" data-tilt="1" style="opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease;position:relative;padding:64px;border-radius:24px;background:linear-gradient(140deg,rgba(79,124,255,.10),rgba(139,92,246,.06) 55%,rgba(4,6,15,.4));border:1px solid rgba(124,154,255,.18);overflow:hidden">
+    <div style="position:absolute;top:0;left:0;width:45%;height:2px;background:linear-gradient(90deg,transparent,#4f7cff,#8b5cf6,transparent);animation:fwBeam 4.5s ease-in-out infinite"></div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4em;background:linear-gradient(90deg,#4f7cff,#a78bfa,#22d3ee,#4f7cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;animation:fwGrad 6s ease infinite">ABOUT FRONTWAY</div>
+    <h2 style="margin:0;font-size:clamp(26px,3.4vw,40px);font-weight:900;line-height:1.5;color:#fff">Frontwayは、営業現場に<br />AIを実装する会社です。</h2>
+    <p style="max-width:640px;margin:28px 0 0;font-size:16px;line-height:2.2;color:#aab4d4">私たちは、営業支援・AI導入支援・業務効率化支援を通じて、企業の成長を支援しています。<br />単なるツール提供ではなく、現場の課題を整理し、AIを実務に落とし込み、成果につながる仕組みをつくります。</p>
+  </div>
+</section>
+
+<section id="why" data-screen-label="Why Join Us" style="max-width:1120px;margin:0 auto;padding:0 32px 150px">
+  <div data-reveal="1" style="opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4em;background:linear-gradient(90deg,#4f7cff,#a78bfa,#22d3ee,#4f7cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;animation:fwGrad 6s ease infinite">WHY JOIN US</div>
+    <h2 style="margin:0 0 56px;font-size:clamp(30px,4vw,46px);font-weight:900;color:#fff">なぜFrontwayで働くのか。</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;perspective:1200px">
+    <sc-for list="{{ whyCards }}" as="c" hint-placeholder-count="6">
+      <div data-reveal="1" data-tilt="1" style="opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .5s ease,box-shadow .3s ease,border-color .3s ease;padding:34px 30px;border-radius:18px;background:rgba(12,17,34,.75);border:1px solid rgba(124,154,255,.14)" style-hover="box-shadow:0 18px 50px rgba(79,124,255,.22);border-color:rgba(139,92,246,.5)">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.2em;color:#7c9aff;margin-bottom:16px">{{ c.no }}</div>
+        <div style="font-size:18px;font-weight:700;color:#fff;line-height:1.6;margin-bottom:12px">{{ c.title }}</div>
+        <div style="font-size:13.5px;line-height:1.95;color:#95a0c2">{{ c.desc }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="culture" data-screen-label="Culture" style="max-width:1120px;margin:0 auto;padding:0 32px 150px">
+  <div data-reveal="1" style="opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4em;background:linear-gradient(90deg,#4f7cff,#a78bfa,#22d3ee,#4f7cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;animation:fwGrad 6s ease infinite">CULTURE</div>
+    <h2 style="margin:0 0 56px;font-size:clamp(30px,4vw,46px);font-weight:900;color:#fff">Frontwayのカルチャー</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px">
+    <sc-for list="{{ cultures }}" as="cu" hint-placeholder-count="7">
+      <div data-reveal="1" data-tilt="1" style="opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .5s ease,border-color .3s ease;display:flex;flex-direction:column;gap:8px;padding:26px 28px;border-radius:14px;background:rgba(10,14,28,.7);border:1px solid rgba(124,154,255,.12)" style-hover="border-color:rgba(79,124,255,.55)">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;letter-spacing:.28em;color:#8b5cf6">{{ cu.en }}</div>
+        <div style="font-size:17px;font-weight:700;color:#e8ecf8">{{ cu.jp }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="work" data-screen-label="Work" style="max-width:1080px;margin:0 auto;padding:0 32px 150px">
+  <div data-reveal="1" style="opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4em;background:linear-gradient(90deg,#4f7cff,#a78bfa,#22d3ee,#4f7cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;animation:fwGrad 6s ease infinite">WORK</div>
+    <h2 style="margin:0 0 18px;font-size:clamp(30px,4vw,46px);font-weight:900;color:#fff">Frontwayで経験できること</h2>
+    <p style="margin:0 0 48px;font-size:15px;line-height:2;color:#95a0c2">職種を越えて、AI時代の営業を最前線で経験できます。</p>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <sc-for list="{{ works }}" as="w" hint-placeholder-count="7">
+        <div style="display:flex;align-items:center;gap:28px;padding:24px 18px;border-bottom:1px solid rgba(124,154,255,.12);transition:background .3s ease,padding-left .3s ease" style-hover="background:rgba(79,124,255,.06);padding-left:30px">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:#7c9aff;width:36px;flex:none">{{ w.no }}</div>
+          <div style="font-size:17px;font-weight:600;color:#e8ecf8">{{ w.title }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section id="message" data-screen-label="CEO Message" style="max-width:1080px;margin:0 auto;padding:0 32px 150px">
+  <div data-reveal="1" style="opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease;padding:64px;border-radius:24px;background:radial-gradient(ellipse at 20% 0%,rgba(139,92,246,.14),transparent 55%),rgba(9,12,26,.85);border:1px solid rgba(124,154,255,.16)">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4em;background:linear-gradient(90deg,#4f7cff,#a78bfa,#22d3ee,#4f7cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;animation:fwGrad 6s ease infinite">CEO MESSAGE</div>
+    <h2 style="margin:0 0 32px;font-size:clamp(26px,3.4vw,38px);font-weight:900;line-height:1.6;color:#fff">営業の「当たり前」を、<br />AIで変えていく。</h2>
+    <div style="max-width:680px;font-size:15.5px;line-height:2.3;color:#b7c1de;display:flex;flex-direction:column;gap:22px">
+      <p style="margin:0">Frontwayは、AIを使って営業の当たり前を変える会社です。営業は今もなお、属人的で非効率な部分が多く残っています。だからこそ、AIによって大きく変えられる余地がある。私たちはそこに、最大のチャンスを見ています。</p>
+      <p style="margin:0">私たちは、AIツールを売るだけの会社ではありません。現場に入り、課題を見つけ、仕組みをつくり、成果が出るまでやり切る。それがFrontwayのスタイルです。</p>
+      <p style="margin:0">正直に言えば、今のFrontwayはまだ完成された会社ではありません。しかしそれは、これから入る人に大きな裁量があるということでもあります。AI時代の営業会社を、ゼロから一緒につくっていきたい。そんな人を、心から歓迎します。</p>
+    </div>
+    <div style="margin-top:40px;display:flex;align-items:baseline;gap:14px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:.24em;color:#7c9aff">FOUNDER &amp; CEO</div>
+      <div style="font-size:16px;font-weight:700;color:#fff">株式会社Frontway 代表取締役</div>
+    </div>
+  </div>
+</section>
+
+<section id="recruit" data-screen-label="Recruit" style="max-width:1120px;margin:0 auto;padding:0 32px 150px">
+  <div data-reveal="1" style="opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4em;background:linear-gradient(90deg,#4f7cff,#a78bfa,#22d3ee,#4f7cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;animation:fwGrad 6s ease infinite">RECRUIT</div>
+    <h2 style="margin:0 0 56px;font-size:clamp(28px,3.6vw,42px);font-weight:900;line-height:1.55;color:#fff">次の時代の営業を、<br />一緒につくる仲間を募集しています。</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-bottom:56px">
+    <sc-for list="{{ positions }}" as="p" hint-placeholder-count="6">
+      <a href="#contact" data-reveal="1" data-tilt="1" style="opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .5s ease,border-color .3s ease,box-shadow .3s ease;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:28px 30px;border-radius:16px;background:rgba(12,17,34,.75);border:1px solid rgba(124,154,255,.14);text-decoration:none" style-hover="border-color:rgba(79,124,255,.6);box-shadow:0 16px 44px rgba(79,124,255,.2)">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:#8b5cf6;letter-spacing:.1em">{{ p.tag }}</div>
+          <div style="font-size:18px;font-weight:700;color:#fff">{{ p.title }}</div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;color:#7c9aff;flex:none">→</div>
+      </a>
+    </sc-for>
+  </div>
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <a href="#contact" style="display:inline-block;padding:17px 40px;border-radius:999px;background:linear-gradient(90deg,#4f7cff,#8b5cf6);color:#fff;text-decoration:none;font-size:15px;font-weight:700;animation:fwPulse 3s ease-in-out infinite;transition:transform .25s ease" style-hover="transform:translateY(-3px)">カジュアル面談を申し込む</a>
+    <a href="#contact" style="display:inline-block;padding:17px 40px;border-radius:999px;border:1px solid rgba(140,160,255,.45);color:#dfe6ff;text-decoration:none;font-size:15px;font-weight:600;background:rgba(79,124,255,.06);transition:all .25s ease" style-hover="box-shadow:0 0 26px rgba(139,92,246,.4);transform:translateY(-3px)">採用について問い合わせる</a>
+  </div>
+</section>
+
+<section id="contact" data-screen-label="Contact" style="max-width:760px;margin:0 auto;padding:0 32px 150px">
+  <div data-reveal="1" style="opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4em;background:linear-gradient(90deg,#4f7cff,#a78bfa,#22d3ee,#4f7cff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px;text-align:center;animation:fwGrad 6s ease infinite">CONTACT</div>
+    <h2 style="margin:0 0 14px;font-size:clamp(26px,3.4vw,38px);font-weight:900;color:#fff;text-align:center">まずは、気軽に話しましょう。</h2>
+    <p style="margin:0 0 48px;font-size:14.5px;line-height:2;color:#95a0c2;text-align:center">応募を迷っている方も歓迎です。カジュアル面談からどうぞ。</p>
+    <form id="fw-form" onSubmit="{{ onSubmit }}" style="display:flex;flex-direction:column;gap:22px;padding:48px;border-radius:22px;background:rgba(10,14,28,.8);border:1px solid rgba(124,154,255,.16)">
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <label style="font-size:13px;font-weight:600;color:#aab4d4">ご希望の内容</label>
+        <select name="type" style="padding:15px 16px;border-radius:10px;background:#0b1022;border:1px solid rgba(124,154,255,.22);color:#e8ecf8;font-size:14px;font-family:'Noto Sans JP',sans-serif">
+          <option>カジュアル面談を希望する</option>
+          <option>採用に応募する</option>
+          <option>インターンについて聞きたい</option>
+          <option>その他のお問い合わせ</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <label style="font-size:13px;font-weight:600;color:#aab4d4">お名前</label>
+          <input name="name" required="required" placeholder="山田 太郎" style="padding:15px 16px;border-radius:10px;background:#0b1022;border:1px solid rgba(124,154,255,.22);color:#e8ecf8;font-size:14px;font-family:'Noto Sans JP',sans-serif" style-focus="border-color:#4f7cff;box-shadow:0 0 0 3px rgba(79,124,255,.2);outline:none" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <label style="font-size:13px;font-weight:600;color:#aab4d4">メールアドレス</label>
+          <input name="email" type="email" required="required" placeholder="you@example.com" style="padding:15px 16px;border-radius:10px;background:#0b1022;border:1px solid rgba(124,154,255,.22);color:#e8ecf8;font-size:14px;font-family:'Noto Sans JP',sans-serif" style-focus="border-color:#4f7cff;box-shadow:0 0 0 3px rgba(79,124,255,.2);outline:none" />
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <label style="font-size:13px;font-weight:600;color:#aab4d4">メッセージ（任意）</label>
+        <textarea name="message" rows="4" placeholder="興味のあるポジション、聞いてみたいことなど" style="padding:15px 16px;border-radius:10px;background:#0b1022;border:1px solid rgba(124,154,255,.22);color:#e8ecf8;font-size:14px;font-family:'Noto Sans JP',sans-serif;resize:vertical" style-focus="border-color:#4f7cff;box-shadow:0 0 0 3px rgba(79,124,255,.2);outline:none"></textarea>
+      </div>
+      <button type="submit" style="margin-top:6px;padding:17px;border-radius:999px;border:none;background:linear-gradient(90deg,#4f7cff,#8b5cf6);color:#fff;font-size:15px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;animation:fwPulse 3s ease-in-out infinite;transition:transform .25s ease" style-hover="transform:translateY(-2px)">送信する</button>
+      <div id="fw-form-done" style="display:none;text-align:center;padding:10px 0 0;color:#7c9aff;font-size:14px;font-weight:600">送信ありがとうございます。担当より折り返しご連絡します。</div>
+    </form>
+  </div>
+</section>
+
+<footer style="border-top:1px solid rgba(124,154,255,.1);padding:44px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+  <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;letter-spacing:.14em;color:#fff">FRONTWAY</div>
+  <div style="font-size:12px;color:#5a6a99">© 2026 Frontway Inc. — AIで、営業の未来をつくる。</div>
+</footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;particles&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;背景演出&quot; },
+  &quot;particleDensity&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 100, &quot;min&quot;: 20, &quot;max&quot;: 200, &quot;step&quot;: 10, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;背景演出&quot; },
+  &quot;networkColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#4f7cff&quot;, &quot;options&quot;: [&quot;#4f7cff&quot;, &quot;#8b5cf6&quot;, &quot;#22d3ee&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;背景演出&quot; }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      onSubmit: (e) => {
+        e.preventDefault();
+        const done = document.getElementById('fw-form-done');
+        if (done) done.style.display = 'block';
+      },
+      whyCards: [
+        { no: '01', title: 'AI市場の成長領域で働ける', desc: '拡大し続けるAI×営業の市場。伸びるマーケットの中心で、キャリアの初速を最大化できます。' },
+        { no: '02', title: '営業力とAIスキルが同時に身につく', desc: '顧客と向き合う力と、AIを実務に落とし込む力。どちらか一方ではなく、両方を武器にできます。' },
+        { no: '03', title: '若いうちから裁量を持てる', desc: '年次ではなく、意欲と成果で任せる範囲が決まります。1年目から顧客と事業に向き合えます。' },
+        { no: '04', title: '会社づくりの初期メンバーになれる', desc: '制度も仕組みも、これからつくるフェーズ。組織の土台づくりに当事者として関われます。' },
+        { no: '05', title: '成果が正当に評価される', desc: '評価の基準は、年齢や在籍年数ではなく成果。出した価値が、そのまま評価と報酬に反映されます。' },
+        { no: '06', title: 'AI時代に強いビジネス人材になれる', desc: 'AIを「使える」だけでなく「成果につなげられる」人材へ。どこでも通用する市場価値を築けます。' }
+      ],
+      cultures: [
+        { en: 'SPEED', jp: 'スピード重視' },
+        { en: 'RESULTS', jp: '成果主義' },
+        { en: 'OWNERSHIP', jp: '自走できる人を評価' },
+        { en: 'AI NATIVE', jp: 'AIを使い倒す' },
+        { en: 'TRUST', jp: '若手でも任せる' },
+        { en: 'SCIENCE', jp: '営業を科学する' },
+        { en: 'CHANGE', jp: '変化を楽しむ' }
+      ],
+      works: [
+        { no: '01', title: 'AIを活用した営業支援' },
+        { no: '02', title: '営業リスト作成の仕組み化' },
+        { no: '03', title: 'AIコール導入支援' },
+        { no: '04', title: 'CRM・業務管理ツールの設計' },
+        { no: '05', title: 'クライアントの業務改善' },
+        { no: '06', title: '新規事業づくり' },
+        { no: '07', title: '営業組織の仕組み化' }
+      ],
+      positions: [
+        { tag: '正社員', title: '営業メンバー' },
+        { tag: '正社員', title: 'AI活用支援メンバー' },
+        { tag: '正社員', title: '営業企画' },
+        { tag: '正社員 / パート', title: '業務改善アシスタント' },
+        { tag: '学生歓迎', title: 'インターン' },
+        { tag: '業務委託', title: '業務委託メンバー' }
+      ]
+    };
+  }
+
+  componentDidMount() {
+    this._cleanup = [];
+
+    // ---- loading screen: fake progress 0 -> 100, then curtain up ----
+    const loader = document.getElementById('fw-loader');
+    const bar = document.getElementById('fw-bar');
+    const pct = document.getElementById('fw-pct');
+    let progress = 0;
+    const step = () => {
+      progress = Math.min(100, progress + 3 + Math.random() * 9);
+      const v = Math.floor(progress);
+      if (bar) bar.style.width = v + '%';
+      if (pct) pct.textContent = v + '%';
+      if (progress < 100) {
+        this._loadTimer = setTimeout(step, 90 + Math.random() * 110);
+      } else {
+        this._loadTimer = setTimeout(() => {
+          if (loader) {
+            loader.style.transform = 'translateY(-100%)';
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 800);
+          }
+        }, 350);
+      }
+    };
+    this._loadTimer = setTimeout(step, 500);
+
+    // ---- scroll progress bar ----
+    const prog = document.getElementById('fw-progress');
+    const onScroll = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      if (prog && max > 0) prog.style.width = (h.scrollTop / max * 100).toFixed(2) + '%';
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    this._cleanup.push(() => window.removeEventListener('scroll', onScroll));
+
+    // ---- cursor glow ----
+    const glow = document.getElementById('fw-glow');
+    let gx = innerWidth / 2, gy = innerHeight / 3, tx = gx, ty = gy;
+    const onMove = (e) => { tx = e.clientX; ty = e.clientY; };
+    window.addEventListener('mousemove', onMove, { passive: true });
+    this._cleanup.push(() => window.removeEventListener('mousemove', onMove));
+    const glowTick = () => {
+      gx += (tx - gx) * 0.08; gy += (ty - gy) * 0.08;
+      if (glow) glow.style.transform = 'translate(' + gx.toFixed(1) + 'px,' + gy.toFixed(1) + 'px)';
+      this._glowRaf = requestAnimationFrame(glowTick);
+    };
+    glowTick();
+
+    // ---- staggered scroll reveal ----
+    this._io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          const el = en.target;
+          const siblings = el.parentElement ? Array.from(el.parentElement.children).filter((s) => s.hasAttribute('data-reveal')) : [el];
+          const idx = Math.max(0, siblings.indexOf(el));
+          setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+          }, idx * 110);
+          this._io.unobserve(el);
+        }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('[data-reveal]').forEach((el) => this._io.observe(el));
+
+    // ---- 3D tilt on cards ----
+    document.querySelectorAll('[data-tilt]').forEach((card) => {
+      const move = (e) => {
+        if (card.style.opacity !== '1') return;
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform = 'translateY(-8px) rotateX(' + (-py * 8).toFixed(2) + 'deg) rotateY(' + (px * 8).toFixed(2) + 'deg)';
+      };
+      const leave = () => { card.style.transform = 'translateY(0)'; };
+      card.addEventListener('mousemove', move);
+      card.addEventListener('mouseleave', leave);
+      this._cleanup.push(() => { card.removeEventListener('mousemove', move); card.removeEventListener('mouseleave', leave); });
+    });
+
+    // ---- particle network + shooting streaks ----
+    const canvas = document.getElementById('fw-net');
+    if (!canvas || (this.props.particles ?? true) === false) return;
+    const ctx = canvas.getContext('2d');
+    const color = this.props.networkColor ?? '#4f7cff';
+    const density = this.props.particleDensity ?? 100;
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+    let W, H, pts = [], streaks = [];
+    const resize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+    this._cleanup.push(() => window.removeEventListener('resize', resize));
+    for (let i = 0; i < density; i++) {
+      pts.push({ x: Math.random(), y: Math.random(), vx: (Math.random() - 0.5) * 0.0005, vy: (Math.random() - 0.5) * 0.0005 });
+    }
+    const spawnStreak = () => {
+      streaks.push({ x: Math.random() * W, y: Math.random() * H * 0.7, len: 120 + Math.random() * 180, sp: 6 + Math.random() * 8, life: 1 });
+    };
+    let mouse = { x: -9999, y: -9999 };
+    const onCanvasMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
+    window.addEventListener('mousemove', onCanvasMove, { passive: true });
+    this._cleanup.push(() => window.removeEventListener('mousemove', onCanvasMove));
+    let frame = 0;
+    const tick = () => {
+      frame++;
+      ctx.clearRect(0, 0, W, H);
+      // particles
+      for (const p of pts) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > 1) p.vx *= -1;
+        if (p.y < 0 || p.y > 1) p.vy *= -1;
+      }
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i];
+        const ax = a.x * W, ay = a.y * H;
+        for (let j = i + 1; j < pts.length; j++) {
+          const c = pts[j];
+          const dx = ax - c.x * W, dy = ay - c.y * H;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < 22500) {
+            ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + (0.14 * (1 - d2 / 22500)).toFixed(3) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(c.x * W, c.y * H); ctx.stroke();
+          }
+        }
+        // connect to cursor
+        const mdx = ax - mouse.x, mdy = ay - mouse.y;
+        const md2 = mdx * mdx + mdy * mdy;
+        if (md2 < 32400) {
+          ctx.strokeStyle = 'rgba(139,92,246,' + (0.35 * (1 - md2 / 32400)).toFixed(3) + ')';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
+        }
+        ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',0.55)';
+        ctx.beginPath(); ctx.arc(ax, ay, 1.4, 0, Math.PI * 2); ctx.fill();
+      }
+      // shooting light streaks
+      if (frame % 140 === 0) spawnStreak();
+      streaks = streaks.filter((s) => s.life > 0);
+      for (const s of streaks) {
+        s.x += s.sp; s.y += s.sp * 0.22; s.life -= 0.012;
+        const gr = ctx.createLinearGradient(s.x - s.len, s.y - s.len * 0.22, s.x, s.y);
+        gr.addColorStop(0, 'rgba(79,124,255,0)');
+        gr.addColorStop(1, 'rgba(139,92,246,' + (0.5 * s.life).toFixed(3) + ')');
+        ctx.strokeStyle = gr;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(s.x - s.len, s.y - s.len * 0.22); ctx.lineTo(s.x, s.y); ctx.stroke();
+      }
+      this._raf = requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  componentWillUnmount() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._glowRaf) cancelAnimationFrame(this._glowRaf);
+    if (this._io) this._io.disconnect();
+    if (this._loadTimer) clearTimeout(this._loadTimer);
+    (this._cleanup || []).forEach((fn) => fn());
+  }
+}
+
+</script>
+</body>
+</html>
