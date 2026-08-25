@@ -14,6 +14,30 @@
     });
   }
 
+  // ---- loading screen: fake progress 0 -> 100, then curtain up ----
+  var loader = document.getElementById('fw-loader');
+  if (loader) {
+    var bar = document.getElementById('fw-bar');
+    var pct = document.getElementById('fw-pct');
+    var progress = 0;
+    var step = function () {
+      progress = Math.min(100, progress + 3 + Math.random() * 9);
+      var v = Math.floor(progress);
+      if (bar) bar.style.width = v + '%';
+      if (pct) pct.textContent = v + '%';
+      if (progress < 100) {
+        setTimeout(step, 90 + Math.random() * 110);
+      } else {
+        setTimeout(function () {
+          loader.style.transform = 'translateY(-100%)';
+          loader.style.opacity = '0';
+          setTimeout(function () { loader.remove(); }, 800);
+        }, 350);
+      }
+    };
+    setTimeout(step, 500);
+  }
+
   // ---- scroll progress bar ----
   var prog = document.getElementById('fw-progress');
   window.addEventListener('scroll', function () {
