@@ -1,49 +1,47 @@
-# Frontway 採用ブランディングサイト v2
+# 株式会社Frontway 公式サイト
 
-## 内容
-- `Frontway Recruit v2.dc.html` — サイト本体（1ファイル完結）
-- `support.js` — レンダリングランタイム（同じフォルダに置いたまま使用）
+公開URL: https://nakayama342.github.io/frontway-recruit/
 
-## 開き方
-`Frontway Recruit v2.dc.html` をブラウザで直接開くだけで動作します。
-※ `support.js` を同一フォルダに残してください。
+## サイト構成
 
-## 構造の説明（VSCode で編集する場合）
-このファイルは `<x-dc>` テンプレート + ロジッククラスの2部構成です。
+```
+index.html            … コーポレートTOP（ABOUT / SERVICE / CAREERS導線 / CONTACT）
+company.html          … 会社概要
+privacy.html          … プライバシーポリシー
+careers/index.html    … 採用トップ（Mission / Why / Culture / 数字で見るFrontway / 募集職種 / ENTRY）
+careers/sales.html    … 募集要項: 営業 / セールス
+careers/ai-dx.html    … 募集要項: AI・DX / 業務改善
+careers/bizdev.html   … 募集要項: 事業開発 / BizDev
+css/site.css          … コーポレートページ共通スタイル
+js/site.js            … コーポレートページ共通スクリプト（パーティクル・メニュー・出現アニメ）
+support.js            … 採用トップ（dc形式）のレンダリングランタイム
+Frontway Recruit v2.dc.html … 採用トップの編集用ソース（下記参照）
+```
 
-- `<x-dc> ... </x-dc>` の中 = マークアップ（インラインスタイルのみ）
-- 末尾の `<script data-dc-script>` の中 = `class Component extends DCLogic { ... }`
-  - `renderVals()` の戻り値がテンプレートの `{{ }}` に入ります
-  - `componentDidMount()` にローディング演出／パーティクル／3Dチルト／スクロール出現の処理があります
+## 更新方法
 
-### テンプレート記法
-- `{{ path }}` … ドット参照のみ（式は書けません。計算は `renderVals()` 側で行う）
-- `<sc-for list="{{ items }}" as="item">` … 繰り返し
-- `style-hover="..."` … ホバー時スタイル
+ファイルを編集して `git add -A && git commit -m "..." && git push` すると、1〜2分で公開URLに反映されます。
 
-### 主要な編集ポイント
+### よくある更新
+
 | やりたいこと | 場所 |
 |---|---|
-| コピー・見出しの変更 | テンプレート内の該当 `<h1>` / `<h2>` / `<p>` |
-| カード・ポジション等の内容 | ロジッククラス `renderVals()` の `whyCards` / `cultures` / `works` / `positions` |
-| 配色 | テンプレート内の `#4f7cff`（青）/ `#8b5cf6`（紫）/ `#04060f`（背景）を置換 |
-| ローディング時間 | `componentDidMount()` の progress ステップ間隔 |
-| 背景パーティクル密度 | `this.props.particleDensity ?? 100` |
-| アニメーション定義 | 先頭 `<helmet><style>` 内の `@keyframes` |
+| 給与・勤務地など募集条件の確定情報を入れる | `careers/sales.html` / `ai-dx.html` / `bizdev.html` の「募集要項」`<dl>` 内の各 `<dd>`（`TODO` コメント付き） |
+| 会社所在地を入れる | `company.html` の「所在地」の `<dd>` |
+| 数字で見るFrontwayの数値変更 | `careers/index.html` の `data-count` 属性と説明文 |
+| コーポレートTOPのコピー変更 | `index.html` |
 
-## カラー
-- 背景 `#04060f`
-- パネル `rgba(12,17,34,.75)`
-- アクセント青 `#4f7cff` / 紫 `#8b5cf6` / シアン `#22d3ee`
-- テキスト `#e8ecf8` / `#aab4d4` / `#95a0c2`
+### 採用トップ（careers/index.html）の編集
 
-## フォント
-- 日本語: Noto Sans JP (400/500/700/900)
-- 英字・数字: Space Grotesk (400/500/600/700)
+`Frontway Recruit v2.dc.html` が編集用ソースです（`<x-dc>` テンプレート + DCLogic クラスの2部構成。
+テンプレート記法や編集ポイントの詳細はファイル内コメント参照）。編集後、以下で反映します:
 
-## React へ移植する場合
-テンプレートは JSX にほぼ 1:1 で置き換えられます。
-- `class` → `className`、`style="a:b"` → `style={{a:'b'}}`
-- `<sc-for list as>` → `items.map(...)`
-- `style-hover` → CSS Modules / styled-components / Tailwind の `hover:` に置換
-- `componentDidMount()` の各処理 → `useEffect`（パーティクル canvas、IntersectionObserver、ローダー、チルト）
+```sh
+sed 's|src="./support.js"|src="../support.js"|' "Frontway Recruit v2.dc.html" > careers/index.html
+```
+
+## 注意事項
+
+- **フォームは未接続です**: TOPのお問い合わせフォームと採用ENTRYフォームは、送信先バックエンドが未設定のダミーです（送信しても completions メッセージが出るだけ）。Googleフォーム / Formspree 等への接続が必要です。
+- カラー: 背景 `#04060f` / アクセント青 `#4f7cff`・紫 `#8b5cf6`・シアン `#22d3ee`
+- フォント: Noto Sans JP（日本語）/ Space Grotesk（英字・数字）
