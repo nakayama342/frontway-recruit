@@ -1,6 +1,6 @@
 # 株式会社Frontway 公式サイト
 
-公開URL: https://nakayama342.github.io/frontway-recruit/
+公開URL: https://frontway.jp
 
 ## サイト構成
 
@@ -18,9 +18,23 @@ support.js            … 採用トップ（dc形式）のレンダリングラ�
 Frontway Recruit v2.dc.html … 採用トップの編集用ソース（下記参照）
 ```
 
-## 更新方法
+## 更新方法（自動デプロイ）
 
-ファイルを編集して `git add -A && git commit -m "..." && git push` すると、1〜2分で公開URLに反映されます。
+ファイルを編集して `git add -A && git commit -m "..." && git push` で main へ push すると、以下の流れで自動反映されます。
+
+```
+main へ push
+  ↓
+GitHub Actions「Deploy to ConoHa WING」（.github/workflows/deploy.yml）
+  ↓
+ConoHa WING の public_html/frontway.jp/ へ SCP で自動デプロイ
+  ↓
+https://frontway.jp に反映
+```
+
+- 転送対象は `index.html` / `company.html` / `privacy.html` / `css/` / `js/` / `careers/` のみ（README等は転送されない）
+- サーバー上の既存ファイルは上書きのみで、削除処理は行わない
+- GitHub Pages（https://nakayama342.github.io/frontway-recruit/）も動いているが、**本番公開先は https://frontway.jp**（ConoHa WING）
 
 ### よくある更新
 
