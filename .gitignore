@@ -1,0 +1,14 @@
+# 秘密鍵・認証情報（絶対にcommitしない）
+*.pem
+*.key
+*.ppk
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db

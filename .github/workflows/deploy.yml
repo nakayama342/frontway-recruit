@@ -1,0 +1,51 @@
+name: Deploy to ConoHa WING
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 静的サイトのためビルド工程なし。
+      # 公開対象: index.html / company.html / privacy.html / css/ / js/ / careers/
+      # （README.md や作業用ファイルは転送しない）
+
+      - name: Setup SSH key and known_hosts
+        env:
+          CONOHA_SSH_KEY: ${{ secrets.CONOHA_SSH_KEY }}
+        run: |
+          install -m 700 -d "$RUNNER_TEMP/ssh"
+          printf '%s\n' "$CONOHA_SSH_KEY" > "$RUNNER_TEMP/ssh/deploy_key"
+          chmod 600 "$RUNNER_TEMP/ssh/deploy_key"
+          # ホストキーはリポジトリ内の検証済み known_hosts を使用（StrictHostKeyChecking は無効化しない）
+          cp .github/known_hosts "$RUNNER_TEMP/ssh/known_hosts"
+
+      - name: Deploy via SCP
+        env:
+          CONOHA_HOST: ${{ secrets.CONOHA_HOST }}
+          CONOHA_PORT: ${{ secrets.CONOHA_PORT }}
+          CONOHA_USER: ${{ secrets.CONOHA_USER }}
+        run: |
+          # 既存ファイルは上書きのみ。削除処理（rm -rf / --delete 等)は行わない。
+          scp -P "$CONOHA_PORT" \
+            -i "$RUNNER_TEMP/ssh/deploy_key" \
+            -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" \
+            -o StrictHostKeyChecking=yes \
+            -r \
+            index.html company.html privacy.html css js careers \
+            "$CONOHA_USER@$CONOHA_HOST:public_html/frontway.jp/"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/ssh"
