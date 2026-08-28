@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # 静的サイトのためビルド工程なし。
       # 公開対象: index.html / company.html / privacy.html / css/ / js/ / careers/
@@ -30,19 +30,6 @@ jobs:
           chmod 600 "$RUNNER_TEMP/ssh/deploy_key"
           # ホストキーはリポジトリ内の検証済み known_hosts を使用（StrictHostKeyChecking は無効化しない）
           cp .github/known_hosts "$RUNNER_TEMP/ssh/known_hosts"
-
-      - name: SSH connection debug (temporary)
-        env:
-          CONOHA_HOST: ${{ secrets.CONOHA_HOST }}
-          CONOHA_PORT: ${{ secrets.CONOHA_PORT }}
-          CONOHA_USER: ${{ secrets.CONOHA_USER }}
-        run: |
-          ssh -v -p "$CONOHA_PORT" \
-            -i "$RUNNER_TEMP/ssh/deploy_key" \
-            -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" \
-            -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=20 \
-            "$CONOHA_USER@$CONOHA_HOST" 'echo CONNECTED' 2>&1 | tail -30 || true
 
       - name: Deploy via SCP
         env:
