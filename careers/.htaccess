@@ -1,0 +1,4 @@
+# careers配下のみ: 描画ランタイム(support.js)が new Function を使うため 'unsafe-eval' を許可
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+</IfModule>
