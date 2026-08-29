@@ -57,17 +57,6 @@ header[id],section[id]{scroll-margin-top:78px}
 <div id="fw-glow" style="position:fixed;top:0;left:0;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;background:radial-gradient(circle,rgba(79,124,255,.16),rgba(139,92,246,.08) 45%,transparent 70%);pointer-events:none;z-index:1;mix-blend-mode:screen"></div>
 <div id="fw-progress" style="position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,#4f7cff,#8b5cf6,#22d3ee);z-index:60;box-shadow:0 0 12px rgba(79,124,255,.8)"></div>
 
-<div id="fw-loader" style="position:fixed;inset:0;z-index:99;background:#04060f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;transition:transform .7s cubic-bezier(.76,0,.24,1),opacity .7s ease">
-  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none"><div style="position:absolute;left:0;right:0;height:120px;background:linear-gradient(180deg,transparent,rgba(79,124,255,.07),transparent);animation:fwScan 2.4s linear infinite"></div></div>
-  <div style="display:flex;gap:6px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:52px;color:#fff;letter-spacing:.1em">
-    <span style="animation:fwLetter .7s ease .10s both">F</span><span style="animation:fwLetter .7s ease .20s both">R</span><span style="animation:fwLetter .7s ease .30s both">O</span><span style="animation:fwLetter .7s ease .40s both">N</span><span style="animation:fwLetter .7s ease .50s both">T</span><span style="animation:fwLetter .7s ease .60s both">W</span><span style="animation:fwLetter .7s ease .70s both">A</span><span style="animation:fwLetter .7s ease .80s both">Y</span>
-  </div>
-  <div style="width:280px;display:flex;flex-direction:column;gap:12px;align-items:center">
-    <div style="width:100%;height:2px;background:rgba(124,154,255,.15);border-radius:2px;overflow:hidden"><div id="fw-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#4f7cff,#8b5cf6);box-shadow:0 0 14px rgba(79,124,255,.9);transition:width .12s ease"></div></div>
-    <div style="display:flex;justify-content:space-between;width:100%;font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.3em;color:#5a6a99"><span>LOADING FUTURE</span><span id="fw-pct" style="color:#7c9aff">0%</span></div>
-  </div>
-</div>
-
 <div style="position:relative;z-index:2">
 
 <nav style="position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(4,6,15,.72);backdrop-filter:blur(14px);border-bottom:1px solid rgba(120,140,255,.12)">
@@ -445,29 +434,7 @@ class Component extends DCLogic {
       });
     }
 
-    // ---- loading screen: fake progress 0 -> 100, then curtain up ----
-    const loader = document.getElementById('fw-loader');
-    const bar = document.getElementById('fw-bar');
-    const pct = document.getElementById('fw-pct');
-    let progress = 0;
-    const step = () => {
-      progress = Math.min(100, progress + 3 + Math.random() * 9);
-      const v = Math.floor(progress);
-      if (bar) bar.style.width = v + '%';
-      if (pct) pct.textContent = v + '%';
-      if (progress < 100) {
-        this._loadTimer = setTimeout(step, 90 + Math.random() * 110);
-      } else {
-        this._loadTimer = setTimeout(() => {
-          if (loader) {
-            loader.style.transform = 'translateY(-100%)';
-            loader.style.opacity = '0';
-            setTimeout(() => loader.remove(), 800);
-          }
-        }, 350);
-      }
-    };
-    this._loadTimer = setTimeout(step, 500);
+    // ローディング画面はTOPページのみの演出とし、採用ページでは表示しない
 
     // ---- count-up numbers (数字で見るFrontway) ----
     const nums = document.querySelectorAll('[data-count]');
