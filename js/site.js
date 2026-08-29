@@ -69,7 +69,7 @@
       var btn = form.querySelector('button[type="submit"]');
       var done = form.querySelector('.fw-form-done');
       var data = { form: 'お問い合わせ' };
-      ['type', 'name', 'email', 'company', 'message'].forEach(function (k) {
+      ['type', 'name', 'email', 'company', 'message', 'website'].forEach(function (k) {
         var el = form.querySelector('[name="' + k + '"]');
         if (el) data[k] = el.value;
       });

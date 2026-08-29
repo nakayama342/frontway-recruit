@@ -277,6 +277,7 @@ header[id],section[id]{scroll-margin-top:78px}
     <h2 style="margin:0 0 14px;font-size:clamp(26px,3.4vw,38px);font-weight:900;color:#fff;text-align:center">まずは、気軽に話しましょう。</h2>
     <p style="margin:0 0 48px;font-size:14.5px;line-height:2;color:#95a0c2;text-align:center">応募を迷っている方も歓迎です。カジュアル面談からどうぞ。</p>
     <form id="fw-form" onSubmit="{{ onSubmit }}" style="display:flex;flex-direction:column;gap:22px;padding:48px;border-radius:22px;background:rgba(10,14,28,.8);border:1px solid rgba(124,154,255,.16)">
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
       <div style="display:flex;flex-direction:column;gap:9px">
         <label style="font-size:13px;font-weight:600;color:#aab4d4">ご希望の内容</label>
         <select name="type" style="padding:15px 16px;border-radius:10px;background:#0b1022;border:1px solid rgba(124,154,255,.22);color:#e8ecf8;font-size:14px;font-family:'Noto Sans JP',sans-serif">
@@ -333,7 +334,7 @@ class Component extends DCLogic {
         const done = document.getElementById('fw-form-done');
         const btn = form.querySelector('button[type="submit"]');
         const data = { form: '採用エントリー' };
-        ['type', 'name', 'email', 'message'].forEach((k) => {
+        ['type', 'name', 'email', 'message', 'website'].forEach((k) => {
           const el = form.querySelector('[name="' + k + '"]');
           if (el) data[k] = el.value;
         });

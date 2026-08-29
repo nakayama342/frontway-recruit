@@ -32,6 +32,16 @@ function getSheet_() {
   return { ss: ss, sheet: sheet };
 }
 
+function jsonOut_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// スプレッドシートの数式インジェクション対策 + 長さ制限
+function clean_(v, max) {
+  v = String(v || '').slice(0, max);
+  return /^[=+\-@\t\r]/.test(v) ? "'" + v : v;
+}
+
 function doPost(e) {
   var data = {};
   try {
@@ -41,12 +51,27 @@ function doPost(e) {
     data = (e && e.parameter) ? e.parameter : {};
   }
 
-  var form = String(data.form || 'お問い合わせ');
-  var type = String(data.type || data.position || '');
-  var name = String(data.name || '');
-  var email = String(data.email || '');
-  var company = String(data.company || '');
-  var message = String(data.message || '');
+  // ハニーポット: 人間には見えないフィールドが埋まっていたらbot（botには成功と見せて捨てる）
+  if (data.website) return jsonOut_({ ok: true });
+
+  var form = clean_(data.form || 'お問い合わせ', 30);
+  var type = clean_(data.type || data.position, 100);
+  var name = clean_(data.name, 100);
+  var email = String(data.email || '').slice(0, 200);
+  var company = clean_(data.company, 200);
+  var message = clean_(data.message, 5000);
+
+  // 必須項目・メール形式の検証
+  if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return jsonOut_({ ok: false, error: 'invalid' });
+  }
+
+  // 全体レートリミット: 10分あたり20件まで（フォーム連投対策）
+  var cache = CacheService.getScriptCache();
+  var count = Number(cache.get('rate_count') || 0);
+  if (count >= 20) return jsonOut_({ ok: false, error: 'rate_limited' });
+  cache.put('rate_count', String(count + 1), 600);
+
   var now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
 
   var target = getSheet_();
@@ -75,7 +100,7 @@ function doPost(e) {
   }
 
   try {
-    MailApp.sendEmail(NOTIFY_EMAIL, '【Frontway】' + form + ': ' + (name || email), summary);
+    MailApp.sendEmail(NOTIFY_EMAIL, ('【Frontway】' + form + ': ' + (name || email)).replace(/[\r\n]/g, ' '), summary);
   } catch (err) { /* メール失敗でも受付自体は成功させる */ }
 
   return ContentService
