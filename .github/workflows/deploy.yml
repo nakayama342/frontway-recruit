@@ -43,7 +43,7 @@ jobs:
             -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" \
             -o StrictHostKeyChecking=yes \
             -r \
-            index.html company.html privacy.html support.js css js careers \
+            index.html company.html privacy.html support.js sitemap.xml robots.txt css js careers \
             "$CONOHA_USER@$CONOHA_HOST:public_html/frontway.jp/"
 
       - name: Cleanup SSH key
