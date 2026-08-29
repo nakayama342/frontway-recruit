@@ -338,19 +338,62 @@ class Component extends DCLogic {
           const el = form.querySelector('[name="' + k + '"]');
           if (el) data[k] = el.value;
         });
-        if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
-        fetch('https://script.google.com/macros/s/AKfycbxUHKOCMzXa77ahm1ilRRmoIxevDPnxiXNNlkOrDMesEW36c6wSNnM_sIEBZqwZe9s2eA/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(data)
-        }).then((res) => res.json()).then(() => {
-          form.reset();
-          if (done) done.style.display = 'block';
-          if (btn) btn.textContent = '送信しました';
-        }).catch(() => {
-          if (btn) { btn.disabled = false; btn.textContent = '送信する'; }
-          alert('送信に失敗しました。お手数ですが時間をおいて再度お試しください。');
+        const send = () => {
+          if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
+          fetch('https://script.google.com/macros/s/AKfycbxUHKOCMzXa77ahm1ilRRmoIxevDPnxiXNNlkOrDMesEW36c6wSNnM_sIEBZqwZe9s2eA/exec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(data)
+          }).then((res) => res.json()).then(() => {
+            form.reset();
+            if (done) done.style.display = 'block';
+            if (btn) btn.textContent = '送信しました';
+          }).catch(() => {
+            if (btn) { btn.disabled = false; btn.textContent = '送信する'; }
+            alert('送信に失敗しました。お手数ですが時間をおいて再度お試しください。');
+          });
+        };
+        // 送信前の内容確認モーダル
+        const old = document.getElementById('fw-confirm');
+        if (old) old.remove();
+        const ov = document.createElement('div');
+        ov.id = 'fw-confirm';
+        ov.style.cssText = 'position:fixed;inset:0;z-index:100;background:rgba(4,6,15,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+        const panel = document.createElement('div');
+        panel.style.cssText = 'max-width:560px;width:100%;max-height:80vh;overflow-y:auto;background:#0b1022;border:1px solid rgba(124,154,255,.3);border-radius:18px;padding:28px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)';
+        const h = document.createElement('div');
+        h.textContent = '以下の内容で送信します。よろしいですか？';
+        h.style.cssText = 'font-size:16px;font-weight:700;color:#fff;margin-bottom:14px';
+        panel.appendChild(h);
+        [['ご希望の内容', data.type], ['お名前', data.name], ['メールアドレス', data.email], ['メッセージ', data.message]].forEach((r) => {
+          if (!r[1]) return;
+          const dt = document.createElement('div');
+          dt.textContent = r[0];
+          dt.style.cssText = 'font-size:12px;font-weight:600;color:#7c9aff;margin:14px 0 3px;letter-spacing:.04em';
+          const dd = document.createElement('div');
+          dd.textContent = r[1];
+          dd.style.cssText = 'font-size:14px;line-height:1.9;color:#e8ecf8;white-space:pre-wrap;word-break:break-word';
+          panel.appendChild(dt);
+          panel.appendChild(dd);
         });
+        const btns = document.createElement('div');
+        btns.style.cssText = 'display:flex;gap:12px;margin-top:26px;flex-wrap:wrap';
+        const ok = document.createElement('button');
+        ok.type = 'button';
+        ok.textContent = 'この内容で送信する';
+        ok.style.cssText = 'flex:1;min-width:170px;padding:14px 20px;border-radius:999px;border:none;cursor:pointer;background:linear-gradient(90deg,#4f7cff,#8b5cf6);color:#fff;font-size:14px;font-weight:700;font-family:inherit';
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.textContent = '修正する';
+        cancel.style.cssText = 'flex:1;min-width:120px;padding:14px 20px;border-radius:999px;cursor:pointer;background:rgba(79,124,255,.06);border:1px solid rgba(140,160,255,.45);color:#dfe6ff;font-size:14px;font-weight:600;font-family:inherit';
+        cancel.addEventListener('click', () => ov.remove());
+        ov.addEventListener('click', (ev) => { if (ev.target === ov) ov.remove(); });
+        ok.addEventListener('click', () => { ov.remove(); send(); });
+        btns.appendChild(ok);
+        btns.appendChild(cancel);
+        panel.appendChild(btns);
+        ov.appendChild(panel);
+        document.body.appendChild(ov);
       },
       whyCards: [
         { no: '01', title: 'AI市場の成長領域で働ける', desc: '拡大し続けるAI×営業の市場。伸びるマーケットの中心で、キャリアの初速を最大化できます。' },

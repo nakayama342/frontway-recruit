@@ -61,6 +61,50 @@
   }, { threshold: 0.12 });
   document.querySelectorAll('.fw-reveal').forEach(function (el) { io.observe(el); });
 
+  // ---- 送信前の内容確認モーダル ----
+  function fwShowConfirm(rows, onOk) {
+    var old = document.getElementById('fw-confirm');
+    if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'fw-confirm';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:100;background:rgba(4,6,15,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+    var panel = document.createElement('div');
+    panel.style.cssText = 'max-width:560px;width:100%;max-height:80vh;overflow-y:auto;background:#0b1022;border:1px solid rgba(124,154,255,.3);border-radius:18px;padding:28px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)';
+    var h = document.createElement('div');
+    h.textContent = '以下の内容で送信します。よろしいですか？';
+    h.style.cssText = 'font-size:16px;font-weight:700;color:#fff;margin-bottom:14px';
+    panel.appendChild(h);
+    rows.forEach(function (r) {
+      if (!r[1]) return;
+      var dt = document.createElement('div');
+      dt.textContent = r[0];
+      dt.style.cssText = 'font-size:12px;font-weight:600;color:#7c9aff;margin:14px 0 3px;letter-spacing:.04em';
+      var dd = document.createElement('div');
+      dd.textContent = r[1];
+      dd.style.cssText = 'font-size:14px;line-height:1.9;color:#e8ecf8;white-space:pre-wrap;word-break:break-word';
+      panel.appendChild(dt);
+      panel.appendChild(dd);
+    });
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:12px;margin-top:26px;flex-wrap:wrap';
+    var ok = document.createElement('button');
+    ok.type = 'button';
+    ok.textContent = 'この内容で送信する';
+    ok.style.cssText = 'flex:1;min-width:170px;padding:14px 20px;border-radius:999px;border:none;cursor:pointer;background:linear-gradient(90deg,#4f7cff,#8b5cf6);color:#fff;font-size:14px;font-weight:700;font-family:inherit';
+    var cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = '修正する';
+    cancel.style.cssText = 'flex:1;min-width:120px;padding:14px 20px;border-radius:999px;cursor:pointer;background:rgba(79,124,255,.06);border:1px solid rgba(140,160,255,.45);color:#dfe6ff;font-size:14px;font-weight:600;font-family:inherit';
+    cancel.addEventListener('click', function () { ov.remove(); });
+    ov.addEventListener('click', function (ev) { if (ev.target === ov) ov.remove(); });
+    ok.addEventListener('click', function () { ov.remove(); onOk(); });
+    btns.appendChild(ok);
+    btns.appendChild(cancel);
+    panel.appendChild(btns);
+    ov.appendChild(panel);
+    document.body.appendChild(ov);
+  }
+
   // ---- contact form -> GAS endpoint (スプレッドシート記録 + 通知) ----
   var FW_FORM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxUHKOCMzXa77ahm1ilRRmoIxevDPnxiXNNlkOrDMesEW36c6wSNnM_sIEBZqwZe9s2eA/exec';
   document.querySelectorAll('form[data-fw-form]').forEach(function (form) {
@@ -73,18 +117,26 @@
         var el = form.querySelector('[name="' + k + '"]');
         if (el) data[k] = el.value;
       });
-      if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
-      fetch(FW_FORM_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(data)
-      }).then(function (res) { return res.json(); }).then(function () {
-        form.reset();
-        if (done) done.style.display = 'block';
-        if (btn) btn.textContent = '送信しました';
-      }).catch(function () {
-        if (btn) { btn.disabled = false; btn.textContent = '送信する'; }
-        alert('送信に失敗しました。お手数ですが時間をおいて再度お試しください。');
+      fwShowConfirm([
+        ['ご希望の内容', data.type],
+        ['お名前', data.name],
+        ['メールアドレス', data.email],
+        ['会社名', data.company],
+        ['メッセージ', data.message]
+      ], function () {
+        if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
+        fetch(FW_FORM_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(data)
+        }).then(function (res) { return res.json(); }).then(function () {
+          form.reset();
+          if (done) done.style.display = 'block';
+          if (btn) btn.textContent = '送信しました';
+        }).catch(function () {
+          if (btn) { btn.disabled = false; btn.textContent = '送信する'; }
+          alert('送信に失敗しました。お手数ですが時間をおいて再度お試しください。');
+        });
       });
     });
   });
