@@ -103,9 +103,9 @@ img{max-width:100%}
 
 /* forms */
 .fw-form{display:flex;flex-direction:column;gap:22px;padding:48px;border-radius:22px;background:rgba(10,14,28,.8);border:1px solid rgba(124,154,255,.16)}
-.fw-field{display:flex;flex-direction:column;gap:9px}
+.fw-field{display:flex;flex-direction:column;gap:9px;min-width:0}
 .fw-field label{font-size:13px;font-weight:600;color:#aab4d4}
-.fw-form input,.fw-form select,.fw-form textarea{padding:15px 16px;border-radius:10px;background:#0b1022;border:1px solid rgba(124,154,255,.22);color:#e8ecf8;font-size:14px;font-family:'Noto Sans JP',sans-serif}
+.fw-form input,.fw-form select,.fw-form textarea{width:100%;min-width:0;padding:15px 16px;border-radius:10px;background:#0b1022;border:1px solid rgba(124,154,255,.22);color:#e8ecf8;font-size:14px;font-family:'Noto Sans JP',sans-serif}
 .fw-form textarea{resize:vertical}
 .fw-form input:focus,.fw-form select:focus,.fw-form textarea:focus{border-color:#4f7cff;box-shadow:0 0 0 3px rgba(79,124,255,.2);outline:none}
 input::placeholder,textarea::placeholder{color:#5a6480}

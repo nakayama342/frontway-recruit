@@ -29,6 +29,8 @@ body{margin:0;background:#04060f;color:#e8ecf8;font-family:'Noto Sans JP',sans-s
 @keyframes fwGrad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes fwScan{0%{top:-10%}100%{top:110%}}
 input::placeholder,textarea::placeholder{color:#5a6480}
+.fw-form-cols>div{min-width:0}
+#fw-form input,#fw-form select,#fw-form textarea{width:100%;min-width:0;box-sizing:border-box}
 header[id],section[id]{scroll-margin-top:78px}
 @media (min-width:861px){#fw-menu{display:none !important}}
 @media (max-width:860px){
