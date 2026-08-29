@@ -329,8 +329,27 @@ class Component extends DCLogic {
     return {
       onSubmit: (e) => {
         e.preventDefault();
+        const form = e.target;
         const done = document.getElementById('fw-form-done');
-        if (done) done.style.display = 'block';
+        const btn = form.querySelector('button[type="submit"]');
+        const data = { form: '採用エントリー' };
+        ['type', 'name', 'email', 'message'].forEach((k) => {
+          const el = form.querySelector('[name="' + k + '"]');
+          if (el) data[k] = el.value;
+        });
+        if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
+        fetch('https://script.google.com/macros/s/AKfycbxUHKOCMzXa77ahm1ilRRmoIxevDPnxiXNNlkOrDMesEW36c6wSNnM_sIEBZqwZe9s2eA/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(data)
+        }).then((res) => res.json()).then(() => {
+          form.reset();
+          if (done) done.style.display = 'block';
+          if (btn) btn.textContent = '送信しました';
+        }).catch(() => {
+          if (btn) { btn.disabled = false; btn.textContent = '送信する'; }
+          alert('送信に失敗しました。お手数ですが時間をおいて再度お試しください。');
+        });
       },
       whyCards: [
         { no: '01', title: 'AI市場の成長領域で働ける', desc: '拡大し続けるAI×営業の市場。伸びるマーケットの中心で、キャリアの初速を最大化できます。' },

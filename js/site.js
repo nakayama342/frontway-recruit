@@ -61,12 +61,31 @@
   }, { threshold: 0.12 });
   document.querySelectorAll('.fw-reveal').forEach(function (el) { io.observe(el); });
 
-  // ---- dummy form (送信先未接続) ----
+  // ---- contact form -> GAS endpoint (スプレッドシート記録 + 通知) ----
+  var FW_FORM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxUHKOCMzXa77ahm1ilRRmoIxevDPnxiXNNlkOrDMesEW36c6wSNnM_sIEBZqwZe9s2eA/exec';
   document.querySelectorAll('form[data-fw-form]').forEach(function (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      var btn = form.querySelector('button[type="submit"]');
       var done = form.querySelector('.fw-form-done');
-      if (done) done.style.display = 'block';
+      var data = { form: 'お問い合わせ' };
+      ['type', 'name', 'email', 'company', 'message'].forEach(function (k) {
+        var el = form.querySelector('[name="' + k + '"]');
+        if (el) data[k] = el.value;
+      });
+      if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
+      fetch(FW_FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data)
+      }).then(function (res) { return res.json(); }).then(function () {
+        form.reset();
+        if (done) done.style.display = 'block';
+        if (btn) btn.textContent = '送信しました';
+      }).catch(function () {
+        if (btn) { btn.disabled = false; btn.textContent = '送信する'; }
+        alert('送信に失敗しました。お手数ですが時間をおいて再度お試しください。');
+      });
     });
   });
 
