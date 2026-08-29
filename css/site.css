@@ -112,6 +112,16 @@ input::placeholder,textarea::placeholder{color:#5a6480}
 .fw-form-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .fw-form-done{display:none;text-align:center;padding:10px 0 0;color:#7c9aff;font-size:14px;font-weight:600}
 
+/* news list */
+.fw-news{border-top:1px solid rgba(124,154,255,.14)}
+.fw-news-item{display:flex;gap:26px;padding:22px 8px;border-bottom:1px solid rgba(124,154,255,.14);text-decoration:none;transition:background .2s ease}
+a.fw-news-item:hover{background:rgba(79,124,255,.06)}
+a.fw-news-item:hover .ttl{color:#fff}
+.fw-news-item .date{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.08em;color:#7c9aff;white-space:nowrap;line-height:1.9}
+.fw-news-item .txt{display:flex;flex-direction:column;gap:8px;min-width:0}
+.fw-news-item .ttl{font-size:15px;font-weight:700;color:#e8ecf8;line-height:1.9;transition:color .2s ease}
+.fw-news-item .body{margin:0;font-size:13.5px;line-height:2;color:#95a0c2}
+
 /* reveal on scroll */
 .fw-reveal{opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease}
 .fw-reveal.is-in{opacity:1;transform:translateY(0)}
@@ -137,4 +147,5 @@ input::placeholder,textarea::placeholder{color:#5a6480}
   .fw-form input,.fw-form select,.fw-form textarea{font-size:16px}
   .fw-table .fw-row{grid-template-columns:1fr;gap:6px;padding:18px 4px}
   .fw-steps{flex-direction:column}
+  .fw-news-item{flex-direction:column;gap:6px;padding:18px 4px}
 }
