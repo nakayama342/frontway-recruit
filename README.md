@@ -2,60 +2,81 @@
 
 公開URL: https://frontway.jp
 
-## サイト構成
+## 全体構成（設計図）
 
 ```
-index.html            … コーポレートTOP（ABOUT / SERVICE / CAREERS導線 / CONTACT）
-company.html          … 会社概要
-privacy.html          … プライバシーポリシー
-careers/index.html    … 採用トップ（Mission / Why / Culture / 数字で見るFrontway / 募集職種 / ENTRY）
-careers/sales.html    … 募集要項: 営業 / セールス
-careers/ai-dx.html    … 募集要項: AI・DX / 業務改善
-careers/bizdev.html   … 募集要項: 事業開発 / BizDev
-css/site.css          … コーポレートページ共通スタイル
-js/site.js            … コーポレートページ共通スクリプト（パーティクル・メニュー・出現アニメ）
-support.js            … 採用トップ（dc形式）のレンダリングランタイム
-Frontway Recruit v2.dc.html … 採用トップの編集用ソース（下記参照）
+[閲覧者]
+   │
+   ▼
+https://frontway.jp（ConoHa WING / 静的サイト + .htaccessでセキュリティヘッダー）
+   │
+   ├─ index.html      … コーポレートTOP（ABOUT / SERVICE / NEWS / CAREERS / CONTACT）
+   ├─ news.html       … ニュース一覧
+   ├─ company.html    … 会社概要
+   ├─ privacy.html    … プライバシーポリシー
+   ├─ sitemap.xml / robots.txt … SEO用（Search Console登録済み）
+   ├─ css/site.css    … 共通スタイル
+   ├─ js/site.js      … 共通スクリプト（背景演出・ナビ・フォーム送信＋確認モーダル）
+   └─ careers/        … 採用サイト（※特殊: 下記「careersの注意点」参照）
+        ├─ index.html … 採用トップ（dc形式 / ../support.js が描画）
+        └─ sales.html / ai-dx.html / bizdev.html … 募集要項（通常の静的HTML）
+
+[問い合わせ・採用エントリーフォーム] --送信--> Google Apps Script（gas-contact/ が元コード）
+   ├─ スプレッドシート「Frontway 問い合わせ一覧」に記録
+   ├─ Google Chat スペース「問い合わせ・入電」に通知（webhook / URLはGASのスクリプトプロパティに保存）
+   └─ t_Nakayama@frontway.jp へメール通知
 ```
 
-## 更新方法（自動デプロイ）
-
-ファイルを編集して `git add -A && git commit -m "..." && git push` で main へ push すると、以下の流れで自動反映されます。
+## デプロイフロー
 
 ```
 main へ push
   ↓
 GitHub Actions「Deploy to ConoHa WING」（.github/workflows/deploy.yml）
   ↓
-ConoHa WING の public_html/frontway.jp/ へ SCP で自動デプロイ
+ConoHa WING の public_html/frontway.jp/ へ SCP で自動デプロイ（上書きのみ・削除なし）
   ↓
-https://frontway.jp に反映
+https://frontway.jp に反映（サーバーキャッシュで反映に1分程度かかることがある）
 ```
 
-- 転送対象は `index.html` / `company.html` / `privacy.html` / `css/` / `js/` / `careers/` のみ（README等は転送されない）
-- サーバー上の既存ファイルは上書きのみで、削除処理は行わない
-- GitHub Pages（https://nakayama342.github.io/frontway-recruit/）も動いているが、**本番公開先は https://frontway.jp**（ConoHa WING）
+- 転送対象は deploy.yml の scp 行の許可リストのみ。**新しいファイルを追加したら deploy.yml への追記を忘れない**
+- GitHub Pages（nakayama342.github.io/frontway-recruit）も動いているが**本番ではない**（canonicalでfrontway.jpを正としている）
 
-### よくある更新
+## 変更時のルール
 
-| やりたいこと | 場所 |
+| 変更対象 | 手順 |
 |---|---|
-| 給与・勤務地など募集条件の確定情報を入れる | `careers/sales.html` / `ai-dx.html` / `bizdev.html` の「募集要項」`<dl>` 内の各 `<dd>`（`TODO` コメント付き） |
-| 会社所在地を入れる | `company.html` の「所在地」の `<dd>` |
-| 数字で見るFrontwayの数値変更 | `careers/index.html` の `data-count` 属性と説明文 |
-| コーポレートTOPのコピー変更 | `index.html` |
+| HTML の文言・内容 | 編集 → commit → push（自動デプロイ） |
+| css/site.css | 編集後、**全HTMLの `site.css?v=日付` を新しい日付に更新**（キャッシュバスター）|
+| js/site.js | 同上（`site.js?v=日付` を更新）|
+| 採用トップ | `Frontway Recruit v2.dc.html` を編集後、`sed 's\|src="./support.js"\|src="../support.js"\|' "Frontway Recruit v2.dc.html" > careers/index.html` で再生成 |
+| ニュース記事追加 | news.html に記事を追加 + index.html のNEWSセクションの最新2件を更新 + sitemap.xml のlastmod更新 |
+| フォーム処理（GAS） | gas-contact/ を編集 → `clasp push --force` → `clasp redeploy <デプロイID>`（pushだけでは本番に反映されない）|
 
-### 採用トップ（careers/index.html）の編集
+## careersの注意点（ハマりどころ）
 
-`Frontway Recruit v2.dc.html` が編集用ソースです（`<x-dc>` テンプレート + DCLogic クラスの2部構成。
-テンプレート記法や編集ポイントの詳細はファイル内コメント参照）。編集後、以下で反映します:
+- 採用トップは React ベースの独自ランタイム（support.js）で描画される。support.js は
+  **`new Function` と unpkg.com のReact CDN** を使うため、サイト共通のCSPでは動かない
+- そのため `careers/.htaccess` で careers 配下のみ `unsafe-eval` と `https://unpkg.com` を許可している
+- **ルートの .htaccess のCSPを変更したら careers/.htaccess も忘れずに確認すること**
+- CSP等ブラウザ挙動に関わる変更後は、headless Chrome で実描画とコンソールエラーを確認する
+  （curlのHTTP 200だけでは検証にならない）
 
-```sh
-sed 's|src="./support.js"|src="../support.js"|' "Frontway Recruit v2.dc.html" > careers/index.html
-```
+## セキュリティ（実装済み）
 
-## 注意事項
+- .htaccess: HSTS / X-Frame-Options / nosniff / Referrer-Policy / Permissions-Policy / CSP / ディレクトリ一覧無効
+- フォーム: ハニーポット（`website` フィールド）/ 送信前確認モーダル /
+  GAS側で入力検証・文字数制限・シート数式インジェクション対策・レートリミット（10分20件）
+- Chat webhook URL は公開リポジトリに置かず、GASのスクリプトプロパティ `CHAT_WEBHOOK_URL` に保存
 
-- **フォームは未接続です**: TOPのお問い合わせフォームと採用ENTRYフォームは、送信先バックエンドが未設定のダミーです（送信しても completions メッセージが出るだけ）。Googleフォーム / Formspree 等への接続が必要です。
-- カラー: 背景 `#04060f` / アクセント青 `#4f7cff`・紫 `#8b5cf6`・シアン `#22d3ee`
-- フォント: Noto Sans JP（日本語）/ Space Grotesk（英字・数字）
+## 変更履歴について
+
+変更履歴は git が正（`git log --oneline` で全履歴、各コミットに変更理由を記載）。
+別ファイルでの履歴管理はしない。
+
+## 未対応・今後の課題
+
+- 募集要項3ページの給与・勤務地・勤務時間等（TODOコメント付きの `<dd>`）が「準備中」のまま
+- 会社概要の連絡先メールアドレス未掲載
+- ブログ/コラム欄（営業×AIの実務ノウハウ記事、週1〜2本・AI下書き＋人間監修の方針）は構想段階
+- Googleビジネスプロフィール未登録
