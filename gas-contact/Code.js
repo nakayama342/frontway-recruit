@@ -6,7 +6,10 @@
 // - 記録先シートは初回アクセス時に自動作成され、URLはdoGet(WebアプリのURLをブラウザで開く)で確認できる
 
 var NOTIFY_EMAIL = 't_Nakayama@frontway.jp';
-var CHAT_WEBHOOK_URL = ''; // Google Chatスペースの incoming webhook URL（未設定なら通知スキップ）
+// Google Chat webhook URLはスクリプトプロパティ CHAT_WEBHOOK_URL に保存（公開リポジトリに含めないため）
+function getChatWebhookUrl_() {
+  return PropertiesService.getScriptProperties().getProperty('CHAT_WEBHOOK_URL') || '';
+}
 var SHEET_NAME = 'Frontway 問い合わせ一覧';
 var HEADERS = ['受信日時', 'フォーム', 'ご希望の内容 / 職種', 'お名前', 'メールアドレス', '会社名', 'メッセージ'];
 
@@ -59,9 +62,10 @@ function doPost(e) {
     'メッセージ:\n' + message + '\n\n' +
     '一覧: ' + target.ss.getUrl();
 
-  if (CHAT_WEBHOOK_URL) {
+  var chatWebhookUrl = getChatWebhookUrl_();
+  if (chatWebhookUrl) {
     try {
-      UrlFetchApp.fetch(CHAT_WEBHOOK_URL, {
+      UrlFetchApp.fetch(chatWebhookUrl, {
         method: 'post',
         contentType: 'application/json; charset=UTF-8',
         payload: JSON.stringify({ text: summary }),
